@@ -94,3 +94,33 @@ export async function getUserOnboardingStatus() {
     throw new Error("Failed to check onboarding status");
   }
 }
+
+export async function getUserWithResumes() {
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  try {
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+      include: {
+        resumes: {
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        },
+        interviews: {
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        },
+        coverLetters: {
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        },
+      },
+    });
+
+    return user;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    return null;
+  }
+}
