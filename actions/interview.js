@@ -151,3 +151,141 @@ export async function getAssessments() {
     throw new Error("Failed to fetch assessments");
   }
 }
+
+export async function createInterview(data) {
+  const { userId } = await auth();
+  if (!userId) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    const prompt = `
+      Generate 5 interview questions for a ${data.jobTitle} position in the ${data.industry} industry.
+      Experience level: ${data.experience} years
+      ${data.jobDescription ? `\nJob Description:\n${data.jobDescription}` : ""}
+      
+      Requirements:
+      1. Mix of behavioral and technical questions
+      2. Relevant to the experience level
+      3. Industry-specific
+      4. Clear and concise
+      
+      Return only the questions as a JSON array of strings, no additional text:
+      ["question 1", "question 2", ...]
+    `;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
+    const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
+    const questions = JSON.parse(cleanedText);
+
+    const interview = await db.interview.create({
+      data: {
+        jobTitle: data.jobTitle,
+        industry: data.industry,
+        experience: parseInt(data.experience),
+        questions,
+        status: "in_progress",
+        userId: user.id,
+      },
+    });
+
+    return { success: true, data: interview };
+  } catch (error) {
+    console.error("Error creating interview:", error);
+    return { success: false, error: "Failed to create interview session" };
+  }
+}
+
+export async function getInterviewById(id) {
+  const { userId } = await auth();
+  if (!userId) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    const interview = await db.interview.findUnique({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    if (!interview) {
+      return { success: false, error: "Interview not found" };
+    }
+
+    return { success: true, data: interview };
+  } catch (error) {
+    console.error("Error fetching interview:", error);
+    return { success: false, error: "Failed to fetch interview" };
+  }
+}
+
+export async function answerQuestion({ interviewId, questionIndex, answer }) {
+  const { userId } = await auth();
+  if (!userId) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    const interview = await db.interview.findUnique({
+      where: {
+        id: interviewId,
+        userId: user.id,
+      },
+    });
+
+    if (!interview) {
+      return { success: false, error: "Interview not found" };
+    }
+
+    const question = interview.questions[questionIndex];
+
+    const prompt = `
+      As an interview coach, provide constructive feedback on this answer:
+      
+      Question: ${question}
+      Answer: ${answer}
+      
+      Provide:
+      1. What was good about the answer
+      2. What could be improved
+      3. A suggested better answer
+      
+      Keep feedback concise and actionable (max 150 words).
+    `;
+
+    const result = await model.generateContent(prompt);
+    const feedback = result.response.text().trim();
+
+    return { success: true, feedback };
+  } catch (error) {
+    console.error("Error processing answer:", error);
+    return { success: false, error: "Failed to process answer" };
+  }
+}

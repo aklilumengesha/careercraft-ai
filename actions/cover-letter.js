@@ -120,3 +120,89 @@ export async function deleteCoverLetter(id) {
     },
   });
 }
+
+export async function createCoverLetter(data) {
+  const { userId } = await auth();
+  if (!userId) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    const prompt = `
+      Write a professional cover letter for a ${data.jobTitle} position at ${data.company}.
+      
+      Job Description:
+      ${data.jobDescription}
+      
+      Requirements:
+      1. Use a professional, enthusiastic tone
+      2. Highlight relevant skills and experience
+      3. Show understanding of the company's needs
+      4. Keep it concise (max 400 words)
+      5. Use proper business letter formatting
+      6. Include specific examples of achievements
+      
+      Format the letter professionally with proper spacing.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const content = result.response.text().trim();
+
+    const coverLetter = await db.coverLetter.create({
+      data: {
+        content,
+        jobDescription: data.jobDescription,
+        company: data.company,
+        jobTitle: data.jobTitle,
+        status: "completed",
+        userId: user.id,
+      },
+    });
+
+    return { success: true, data: coverLetter };
+  } catch (error) {
+    console.error("Error creating cover letter:", error);
+    return { success: false, error: "Failed to generate cover letter" };
+  }
+}
+
+export async function getCoverLetterById(id) {
+  const { userId } = await auth();
+  if (!userId) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    const coverLetter = await db.coverLetter.findUnique({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    if (!coverLetter) {
+      return { success: false, error: "Cover letter not found" };
+    }
+
+    return { success: true, data: coverLetter };
+  } catch (error) {
+    console.error("Error fetching cover letter:", error);
+    return { success: false, error: "Failed to fetch cover letter" };
+  }
+}
