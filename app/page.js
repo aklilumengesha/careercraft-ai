@@ -198,16 +198,26 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-in fade-in duration-500">
+      <section className="relative py-20 px-4 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=2070&auto=format&fit=crop"
+            alt="Career transformation"
+            fill
+            className="object-cover"
+            priority={false}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/85 to-primary/90"></div>
+        </div>
+        <div className="container mx-auto text-center relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white animate-in fade-in duration-500">
             Ready to Transform Your Career?
           </h2>
-          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto animate-in fade-in duration-700">
+          <p className="text-white/90 mb-8 max-w-2xl mx-auto animate-in fade-in duration-700">
             Join thousands of professionals using AI to land their dream jobs.
           </p>
           <Link href="/dashboard">
-            <Button size="lg" className="group transition-all duration-300 hover:scale-110 hover:shadow-xl animate-in fade-in duration-1000">
+            <Button size="lg" variant="secondary" className="group transition-all duration-300 hover:scale-110 hover:shadow-2xl animate-in fade-in duration-1000">
               Get Started Free
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
             </Button>

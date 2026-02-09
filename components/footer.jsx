@@ -3,7 +3,7 @@ import { BriefcaseBusiness } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="border-t bg-gradient-to-b from-muted/30 to-muted/50">
+    <footer className="border-t bg-gradient-to-b from-primary/5 to-primary/10">
       <div className="container py-8 md:py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
@@ -76,7 +76,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
+        <div className="mt-8 pt-8 border-t border-primary/20 text-center text-sm text-muted-foreground">
           <p>
             © {new Date().getFullYear()} CareerCraft AI. All rights reserved.
           </p>
