@@ -4,8 +4,14 @@ import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// Initialize Gemini with error handling
+let model;
+try {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  model = genAI.getGenerativeModel({ model: "gemini-pro" });
+} catch (error) {
+  console.error("Failed to initialize Gemini:", error);
+}
 
 export async function generateCoverLetter(data) {
   const { userId } = await auth();
@@ -128,12 +134,28 @@ export async function createCoverLetter(data) {
   }
 
   try {
-    const user = await db.user.findUnique({
+    // Find or create user
+    let user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
 
     if (!user) {
-      return { success: false, error: "User not found" };
+      // Create user if doesn't exist
+      const { currentUser } = await import("@clerk/nextjs/server");
+      const clerkUser = await currentUser();
+      
+      if (!clerkUser) {
+        return { success: false, error: "User not found" };
+      }
+
+      user = await db.user.create({
+        data: {
+          clerkUserId: userId,
+          name: `${clerkUser.firstName} ${clerkUser.lastName}`,
+          email: clerkUser.emailAddresses[0].emailAddress,
+          imageUrl: clerkUser.imageUrl,
+        },
+      });
     }
 
     const prompt = `
@@ -160,7 +182,7 @@ export async function createCoverLetter(data) {
       data: {
         content,
         jobDescription: data.jobDescription,
-        company: data.company,
+        companyName: data.company,
         jobTitle: data.jobTitle,
         status: "completed",
         userId: user.id,

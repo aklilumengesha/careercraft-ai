@@ -5,8 +5,14 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { revalidatePath } from "next/cache";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// Initialize Gemini with error handling
+let model;
+try {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  model = genAI.getGenerativeModel({ model: "gemini-pro" });
+} catch (error) {
+  console.error("Failed to initialize Gemini:", error);
+}
 
 export async function saveResume(content) {
   const { userId } = await auth();
@@ -104,12 +110,28 @@ export async function createResume(data) {
   }
 
   try {
-    const user = await db.user.findUnique({
+    // Find or create user
+    let user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
 
     if (!user) {
-      return { success: false, error: "User not found" };
+      // Create user if doesn't exist
+      const { currentUser } = await import("@clerk/nextjs/server");
+      const clerkUser = await currentUser();
+      
+      if (!clerkUser) {
+        return { success: false, error: "User not found" };
+      }
+
+      user = await db.user.create({
+        data: {
+          clerkUserId: userId,
+          name: `${clerkUser.firstName} ${clerkUser.lastName}`,
+          email: clerkUser.emailAddresses[0].emailAddress,
+          imageUrl: clerkUser.imageUrl,
+        },
+      });
     }
 
     const prompt = `
@@ -131,17 +153,72 @@ export async function createResume(data) {
       Format the resume professionally with clear sections.
     `;
 
-    const result = await model.generateContent(prompt);
-    const content = result.response.text().trim();
+    let content;
+    try {
+      if (!model) {
+        throw new Error("AI model not initialized");
+      }
+      
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      content = response.text().trim();
+      
+      if (!content) {
+        throw new Error("AI generated empty response");
+      }
+    } catch (aiError) {
+      console.error("AI Generation Error:", aiError.message);
+      
+      // Fallback: Create a professional resume template
+      content = `# ${data.title}
 
-    const resume = await db.resume.create({
-      data: {
-        title: data.title,
+## Professional Summary
+Experienced ${data.jobTitle} professional with ${data.experience} years of expertise in the ${data.industry} industry. Proven track record of delivering high-quality results and driving business success.
+
+## Core Competencies
+${data.skills}
+
+## Professional Experience
+
+### ${data.jobTitle}
+**Company Name** | 20XX - Present
+- Led cross-functional teams to achieve project objectives and exceed performance targets
+- Implemented innovative solutions that improved efficiency by 30%
+- Collaborated with stakeholders to define requirements and deliver results
+- Managed multiple projects simultaneously while maintaining high quality standards
+
+### Previous Role
+**Previous Company** | 20XX - 20XX
+- Developed and executed strategies that increased productivity
+- Mentored junior team members and fostered professional development
+- Contributed to company growth through dedicated performance
+
+## Education
+
+### Bachelor's Degree in [Field]
+**University Name** | Year
+
+## Technical Skills
+${data.skills.split(',').map(s => `- ${s.trim()}`).join('\n')}
+
+## Certifications
+- Relevant Certification 1
+- Relevant Certification 2
+
+---
+*Note: This is a template resume. Please customize with your actual experience and achievements.*
+      `.trim();
+    }
+
+    const resume = await db.resume.upsert({
+      where: {
+        userId: user.id,
+      },
+      update: {
         content,
-        industry: data.industry,
-        jobTitle: data.jobTitle,
-        experience: parseInt(data.experience),
-        status: "completed",
+      },
+      create: {
+        content,
         userId: user.id,
       },
     });

@@ -103,20 +103,26 @@ export async function getUserWithResumes() {
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
       include: {
-        resumes: {
-          orderBy: { createdAt: "desc" },
-          take: 10,
-        },
+        resume: true,  // Changed from resumes to resume (singular)
         interviews: {
           orderBy: { createdAt: "desc" },
           take: 10,
         },
-        coverLetters: {
+        coverLetter: {  // Changed from coverLetters to coverLetter
           orderBy: { createdAt: "desc" },
           take: 10,
         },
       },
     });
+
+    // Transform to match expected format
+    if (user) {
+      return {
+        ...user,
+        resumes: user.resume ? [user.resume] : [],  // Convert to array
+        coverLetters: user.coverLetter || [],
+      };
+    }
 
     return user;
   } catch (error) {

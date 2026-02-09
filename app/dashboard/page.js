@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import {
   FileText,
   MessageSquare,
@@ -11,6 +12,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { getUserWithResumes } from "@/actions/user";
+import { checkUser } from "@/lib/checkUser";
 
 export default async function DashboardPage() {
   const user = await currentUser();
@@ -19,18 +21,39 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
+  // Ensure user exists in database
+  await checkUser();
+
   const userData = await getUserWithResumes();
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">
-          Welcome back, {user.firstName}!
-        </h1>
-        <p className="text-muted-foreground">
-          Continue your career journey with AI-powered tools.
-        </p>
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-r from-primary/10 via-primary/5 to-background overflow-hidden">
+        <div className="container mx-auto py-12 px-4">
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                Welcome back, {user.firstName}!
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Continue your career journey with AI-powered tools.
+              </p>
+            </div>
+            <div className="relative h-[200px] lg:h-[250px] rounded-lg overflow-hidden shadow-lg">
+              <Image
+                src="https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=2070&auto=format&fit=crop"
+                alt="Career success and growth"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          </div>
+        </div>
       </div>
+
+      <div className="container mx-auto py-8 px-4">
 
       {/* Quick Stats */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
@@ -186,6 +209,7 @@ export default async function DashboardPage() {
             )}
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );

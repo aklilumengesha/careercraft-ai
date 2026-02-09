@@ -30,6 +30,7 @@ model User {
   assessments   Assessment[]
   resume        Resume?
   coverLetter   CoverLetter[]
+  interviews    Interview[]
 }
 
 model Assessment {
@@ -66,6 +67,21 @@ model CoverLetter {
   companyName     String    // Name of the company applying to
   jobTitle        String    // Position applying for
   status          String    @default("draft") // draft, completed
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Interview {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  jobTitle        String    // Position preparing for
+  industry        String    // Industry
+  experience      Int       // Years of experience
+  questions       String[]  // Array of interview questions
+  status          String    @default("in_progress") // in_progress, completed
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
