@@ -22,7 +22,7 @@ export default function Home() {
       <section className="py-20 px-4 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="text-center lg:text-left">
+            <div className="text-center lg:text-left space-y-6 animate-in fade-in slide-in-from-left duration-700">
               <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 Transform Your Career with AI
               </h1>
@@ -32,26 +32,27 @@ export default function Home() {
               </p>
               <div className="flex gap-4 justify-center lg:justify-start">
                 <Link href="/dashboard">
-                  <Button size="lg">
+                  <Button size="lg" className="group transition-all duration-300 hover:scale-105 hover:shadow-lg">
                     Get Started Free
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
                 <Link href="/#how-it-works">
-                  <Button size="lg" variant="outline">
+                  <Button size="lg" variant="outline" className="transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-primary/5">
                     Learn More
                   </Button>
                 </Link>
               </div>
             </div>
-            <div className="relative h-[400px] lg:h-[500px] rounded-lg overflow-hidden shadow-2xl">
+            <div className="relative h-[400px] lg:h-[500px] rounded-lg overflow-hidden shadow-2xl group animate-in fade-in slide-in-from-right duration-700">
               <Image
                 src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop"
                 alt="Professional team collaboration"
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
                 priority
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
           </div>
         </div>
@@ -73,12 +74,18 @@ export default function Home() {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <Card key={index} className="text-center">
+                <Card 
+                  key={index} 
+                  className="text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:border-primary/50 cursor-pointer group"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
                   <CardContent className="pt-6">
                     <div className="flex justify-center">
-                      <Icon className="w-10 h-10 mb-4 text-primary" />
+                      <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+                        <Icon className="w-10 h-10 mb-4 text-primary group-hover:scale-110 transition-transform duration-300" />
+                      </div>
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">
+                    <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors duration-300">
                       {feature.title}
                     </h3>
                     <p className="text-sm text-muted-foreground">
@@ -107,11 +114,15 @@ export default function Home() {
             {howItWorks.map((step, index) => {
               const Icon = step.icon;
               return (
-                <div key={index} className="text-center">
-                  <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Icon className="w-8 h-8" />
+                <div 
+                  key={index} 
+                  className="text-center group hover:scale-105 transition-transform duration-300"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary group-hover:shadow-lg transition-all duration-300">
+                    <Icon className="w-8 h-8 group-hover:text-white group-hover:scale-110 transition-all duration-300" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
+                  <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors duration-300">{step.title}</h3>
                   <p className="text-sm text-muted-foreground">
                     {step.description}
                   </p>
@@ -135,13 +146,17 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {testimonials.map((testimonial, index) => (
-              <Card key={index}>
+              <Card 
+                key={index}
+                className="transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/30 cursor-pointer"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-center mb-4">
                     <img
                       src={testimonial.image}
                       alt={testimonial.name}
-                      className="w-12 h-12 rounded-full mr-3"
+                      className="w-12 h-12 rounded-full mr-3 ring-2 ring-transparent hover:ring-primary transition-all duration-300"
                     />
                     <div>
                       <p className="font-semibold">{testimonial.name}</p>
@@ -185,16 +200,16 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-in fade-in duration-500">
             Ready to Transform Your Career?
           </h2>
-          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto animate-in fade-in duration-700">
             Join thousands of professionals using AI to land their dream jobs.
           </p>
           <Link href="/dashboard">
-            <Button size="lg">
+            <Button size="lg" className="group transition-all duration-300 hover:scale-110 hover:shadow-xl animate-in fade-in duration-1000">
               Get Started Free
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
             </Button>
           </Link>
         </div>
